@@ -4,6 +4,17 @@
 #include "MyGameInstance.h"
 #include "Student.h"
 #include "JsonObjectConverter.h"
+// 8-2 이 헤더가 있어야 패키지를 저장할 떄 쓰이는 함수를 쓸 수  있다.
+#include "UObject/SavePackage.h"
+
+/* 3. pacakge 이름을 정할떄는 규칙이 있다.
+ * 언리얼 엔진 프로젝트를 시작하면 각각에 대한 고유하 경로가 지정된다.
+ * 그 고유한 경로 중 하나가 /Game이라고 하는 경로이다.
+ * 이 /Game은 애샛들을 모아놓은 디렉토리이다.
+ * Saved라는 위치는 /Temp에 매핑되어있다. 
+*/
+const FString UMyGameInstance::PackageName = TEXT("/Game/Student");
+const FString UMyGameInstance::AssetName = TEXT("TopStudent");
 
 UMyGameInstance::UMyGameInstance()
 {
@@ -128,5 +139,44 @@ void UMyGameInstance::Init()
 			}
 		}
 	}
-		
+
+	// 2. 패키지를 사용하기 위핸서는 패키지와 패키지에 담긴 애셋을 설정해야한다.
+	SaveStudentPackage();
+}
+
+void UMyGameInstance::SaveStudentPackage() const
+{
+	// 4. 이렇게 하면 패키지가 하나 만들어진다.
+	UPackage* StudentPackage = CreatePackage(*PackageName);
+	// 5. 패키지를 저장하는 욥션
+	constexpr EObjectFlags ObjectFlag = RF_Public | RF_Standalone;
+	// 6. 패키지에 어떤 내용을 담을지 겵정.
+	// 인자가 없는 경우는 Transient package라는 임시 패키지 안에 오브젝트가 저장된다.
+	// 인자가 있는 경우는 인자로 전달된 패키지 안에 오브젝트가 들어간다.
+	// 이후 필요한 옵션들을 추가한다.
+	// 지금 껏 언리얼 오브젝트를 추가하던 방식보다 복잡하지만 이렇게 해야 안전하게 생성할 수 있다.
+	UStudent* TopStudent = NewObject<UStudent>(StudentPackage, UStudent::StaticClass(), *AssetName, ObjectFlag);
+	TopStudent->SetName("김동호");
+	TopStudent->SetOrder(100);
+	
+	constexpr int NumOfSubObjects = 10;
+	for (int32 i = 0 ; i < NumOfSubObjects ; i++)
+	{
+		FString SubObjectName = FString::Printf(TEXT("Student#%2d"), i+1);
+		// 7. 이 경우에는 TopStudent의 하위로 들어가는 오브젝트이므로 첫 매개변수를 TopStudent로 한다.
+		UStudent* SubStudent = NewObject<UStudent>(TopStudent, UStudent::StaticClass(), *SubObjectName, ObjectFlag);
+		SubStudent->SetName( FString::Printf(TEXT("학생#%2d"), i+1));
+		SubStudent->SetOrder(i+1);
+	}
+
+	// 8. 이제 이 패키지를 저장할텐데, 패키지를 저장할 경로와 패키지 저장 파일의 확장자를 결정해야한다.
+	// GetAssetPackageExtension()에 의해서 최종적으로 .uasset이라는 확장자로 저장된다.
+	const FString PackageFileName =FPackageName::LongPackageNameToFilename(PackageName, FPackageName::GetAssetPackageExtension());
+	FSavePackageArgs SaveArgs;
+	SaveArgs.TopLevelFlags = ObjectFlag;
+
+	if (UPackage::SavePackage(StudentPackage, nullptr, *PackageFileName, SaveArgs))
+	{
+		UE_LOG(LogTemp, Log, TEXT("패키지가 성공적으로 저장되었습니다."));
+	}
 }

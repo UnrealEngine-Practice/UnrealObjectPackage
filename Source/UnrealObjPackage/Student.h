@@ -10,7 +10,7 @@
  * 
  */
 UCLASS()
-class UNREALOBJPACKAGE_API UStudent : public UObject
+class  UStudent : public UObject
 {
 	GENERATED_BODY()
 public:

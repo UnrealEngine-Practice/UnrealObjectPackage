@@ -34,7 +34,13 @@ public:
 	
 	virtual void Init() override;
 
+	// 1. 애셋을 저장하기 위한 함수.
+	void SaveStudentPackage() const;
+
 private:
+	static const FString PackageName;
+	static const FString AssetName;
+	
 	UPROPERTY()
 	TObjectPtr<class UStudent> StudentSrc;
 };
