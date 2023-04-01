@@ -37,6 +37,9 @@ public:
 	// 1. 애셋을 저장하기 위한 함수.
 	void SaveStudentPackage() const;
 
+	// 9. 애셋을 불러오기 위한 함수
+	void LoadStudentPackage() const;
+
 private:
 	static const FString PackageName;
 	static const FString AssetName;

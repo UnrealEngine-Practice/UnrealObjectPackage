@@ -142,12 +142,22 @@ void UMyGameInstance::Init()
 
 	// 2. 패키지를 사용하기 위핸서는 패키지와 패키지에 담긴 애셋을 설정해야한다.
 	SaveStudentPackage();
+
+	
+	LoadStudentPackage();
 }
 
 void UMyGameInstance::SaveStudentPackage() const
 {
+	// 12. 이미 패키지가 있다면, 로드를 디 끝내고 저장하는 것이 맞다.
+	UPackage* StudentPackage = ::LoadPackage(nullptr, *PackageName, LOAD_None);
+	if (StudentPackage)
+	{
+		StudentPackage->FullyLoad();
+	}
+	
 	// 4. 이렇게 하면 패키지가 하나 만들어진다.
-	UPackage* StudentPackage = CreatePackage(*PackageName);
+	StudentPackage = CreatePackage(*PackageName);
 	// 5. 패키지를 저장하는 욥션
 	constexpr EObjectFlags ObjectFlag = RF_Public | RF_Standalone;
 	// 6. 패키지에 어떤 내용을 담을지 겵정.
@@ -179,4 +189,19 @@ void UMyGameInstance::SaveStudentPackage() const
 	{
 		UE_LOG(LogTemp, Log, TEXT("패키지가 성공적으로 저장되었습니다."));
 	}
+}
+
+void UMyGameInstance::LoadStudentPackage() const
+{
+	UPackage* StudentPackage = ::LoadPackage(nullptr, *PackageName, LOAD_None);
+	if (nullptr == StudentPackage)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("패키지를 불러올 수 없습니다."));
+		return;
+	}
+	// 10. 로드에 성공하면 안에 가지고 있는 모든 오브젝트를 로드한다.
+	StudentPackage->FullyLoad();
+	// 11. 로드된 StudentPackage에서 애셋 네임(여기선 "TopStudent")를 찾아준다.
+	UStudent* TopStudent = FindObject<UStudent>(StudentPackage, *AssetName);
+	TopStudent->PrintInfo(TEXT("UE Object 찾음!"));
 }
